@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AlephAI — Los clientes que no contactas, los tiene tu competencia</title>
+<meta name="description" content="Automatización con IA para clínicas, centros de estética, asesorías, psicólogos y garajes. Recupera cada cliente que dabas por perdido."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --black:#04040A;
+  --surface:#08080F;
+  --card:#0D0D1A;
+  --border:#1C1C30;
+  --cyan:#00E5FF;
+  --lime:#AAFF00;
+  --red:#FF2D55;
+  --text:#F0F0FF;
+  --muted:#5A5A7A;
+  --font-display:'Bebas Neue',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+  --font-mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--text);font-family:var(--font-body);overflow-x:hidden;cursor:none}
+
+/* CURSOR */
+#cursor{position:fixed;width:12px;height:12px;background:var(--cyan);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .2s;mix-blend-mode:difference}
+#cursor-ring{position:fixed;width:40px;height:40px;border:1px solid var(--cyan);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:0.4;transition:transform .08s ease}
+
+/* CANVAS */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid transparent;transition:all .3s;backdrop-filter:blur(0px)}
+nav.scrolled{border-bottom-color:var(--border);backdrop-filter:blur(20px);background:rgba(4,4,10,0.8)}
+.logo{font-family:var(--font-display);font-size:28px;letter-spacing:2px;color:var(--text)}
+.logo span{color:var(--cyan)}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;letter-spacing:.5px;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:var(--cyan);color:var(--black);border:none;padding:10px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.5px;transition:opacity .2s}
+.nav-cta:hover{opacity:.85}
+
+/* SECTIONS */
+section{position:relative;z-index:1}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:120px 40px 80px;max-width:1200px;margin:0 auto}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);padding:6px 16px;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--muted);margin-bottom:32px}
+.hero-tag::before{content:'';width:6px;height:6px;background:var(--lime);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+h1{font-family:var(--font-display);font-size:clamp(56px,9vw,130px);line-height:.92;letter-spacing:1px;margin-bottom:8px}
+h1 .accent{color:var(--cyan)}
+h1 .strike{position:relative;color:var(--muted)}
+h1 .strike::after{content:'';position:absolute;left:0;top:50%;width:100%;height:3px;background:var(--red);transform:rotate(-1deg)}
+.hero-sub{font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:620px;line-height:1.7;margin:32px 0 48px;font-weight:300}
+.hero-sub strong{color:var(--text);font-weight:500}
+.hero-actions{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.btn-primary{background:var(--cyan);color:var(--black);border:none;padding:16px 36px;font-family:var(--font-body);font-size:15px;font-weight:600;cursor:none;letter-spacing:.5px;transition:transform .15s;display:inline-flex;align-items:center;gap:10px}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-primary svg{transition:transform .2s}
+.btn-primary:hover svg{transform:translateX(4px)}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);padding:16px 36px;font-family:var(--font-body);font-size:15px;font-weight:500;cursor:none;letter-spacing:.5px;transition:border-color .2s}
+.btn-ghost:hover{border-color:var(--muted)}
+.hero-stats{display:flex;gap:48px;margin-top:80px;padding-top:48px;border-top:1px solid var(--border);flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat-num{font-family:var(--font-display);font-size:42px;color:var(--cyan)}
+.stat-label{font-size:13px;color:var(--muted);font-weight:400;max-width:140px;line-height:1.4}
+
+/* PAIN */
+#pain{padding:120px 40px;background:linear-gradient(180deg,var(--black) 0%,#060612 100%)}
+.pain-inner{max-width:1200px;margin:0 auto}
+.section-label{font-family:var(--font-mono);font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:20px}
+.section-title{font-family:var(--font-display);font-size:clamp(40px,6vw,80px);line-height:.95;margin-bottom:48px}
+.pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
+.pain-card{background:var(--card);padding:40px 32px;position:relative;overflow:hidden;transition:background .3s}
+.pain-card:hover{background:#10101F}
+.pain-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.pain-card:hover::before{transform:scaleX(1)}
+.pain-icon{font-size:28px;margin-bottom:20px;display:block}
+.pain-loss{font-family:var(--font-display);font-size:52px;color:var(--red);line-height:1;margin-bottom:8px}
+.pain-who{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+.pain-desc{font-size:14px;color:var(--muted);line-height:1.7}
+.pain-desc strong{color:var(--text)}
+
+/* SOLUTION */
+#solution{padding:120px 40px}
+.solution-inner{max-width:1200px;margin:0 auto}
+.solution-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.solution-visual{position:relative;aspect-ratio:1;border:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(60px);animation:float 6s ease-in-out infinite}
+.orb-1{width:200px;height:200px;background:rgba(0,229,255,0.12);top:20%;left:20%;animation-delay:0s}
+.orb-2{width:150px;height:150px;background:rgba(170,255,0,0.08);bottom:20%;right:20%;animation-delay:-3s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.agent-ui{background:#080814;border:1px solid var(--border);padding:20px;width:80%;position:relative;z-index:1;font-family:var(--font-mono);font-size:12px}
+.agent-header{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);color:var(--muted)}
+.agent-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);animation:pulse 2s infinite}
+.msg{margin-bottom:10px;line-height:1.5}
+.msg.bot{color:var(--cyan)}
+.msg.user{color:var(--text);text-align:right}
+.msg.bot::before{content:'AI › ';color:var(--muted)}
+.msg.user::before{content:'Cliente › ';color:var(--muted)}
+.typing{display:flex;gap:4px;align-items:center;padding:4px 0}
+.typing span{width:4px;height:4px;background:var(--muted);border-radius:50%;animation:blink 1.4s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.solution-content{display:flex;flex-direction:column;gap:32px}
+.step{display:flex;gap:20px;align-items:flex-start}
+.step-num{font-family:var(--font-display);font-size:48px;color:var(--border);line-height:1;flex-shrink:0;transition:color .3s}
+.step:hover .step-num{color:var(--cyan)}
+.step-text h3{font-size:18px;font-weight:600;margin-bottom:8px}
+.step-text p{font-size:14px;color:var(--muted);line-height:1.7}
+
+/* INDUSTRIES */
+#industries{padding:120px 40px;background:var(--surface)}
+.industries-inner{max-width:1200px;margin:0 auto}
+.industry-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:48px}
+.industry-card{border:1px solid var(--border);padding:32px 24px;cursor:none;transition:all .3s;position:relative;overflow:hidden;background:var(--card)}
+.industry-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,255,0.03),transparent);opacity:0;transition:opacity .3s}
+.industry-card:hover{border-color:var(--cyan);transform:translateY(-4px)}
+.industry-card:hover::after{opacity:1}
+.industry-emoji{font-size:32px;margin-bottom:16px;display:block}
+.industry-name{font-size:16px;font-weight:600;margin-bottom:8px}
+.industry-pain{font-size:13px;color:var(--muted);line-height:1.5}
+.industry-savings{display:inline-block;margin-top:12px;font-family:var(--font-mono);font-size:12px;color:var(--lime);background:rgba(170,255,0,0.07);padding:3px 10px;border:1px solid rgba(170,255,0,0.2)}
+
+/* RESULTS */
+#results{padding:120px 40px}
+.results-inner{max-width:1200px;margin:0 auto}
+.results-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-top:48px;border:1px solid var(--border)}
+.result-card{background:var(--card);padding:48px 40px}
+.result-metric{font-family:var(--font-display);font-size:72px;line-height:1;color:var(--lime);margin-bottom:8px}
+.result-label{font-size:14px;color:var(--muted);line-height:1.6}
+.result-who{font-family:var(--font-mono);font-size:11px;color:var(--border);margin-top:16px;letter-spacing:1px}
+
+/* AGENT SECTION */
+#agent{padding:120px 40px;background:var(--surface)}
+.agent-inner{max-width:900px;margin:0 auto;text-align:center}
+.agent-demo{margin-top:60px;border:1px solid var(--border);background:var(--card);overflow:hidden}
+.agent-demo-header{background:#06060E;padding:16px 24px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.agent-demo-title{font-family:var(--font-mono);font-size:12px;color:var(--muted);letter-spacing:1px}
+.chat-body{padding:24px;display:flex;flex-direction:column;gap:12px;min-height:320px}
+.bubble{max-width:72%;padding:12px 16px;font-size:14px;line-height:1.6}
+.bubble.bot{background:#0A0A1A;border:1px solid var(--border);align-self:flex-start;border-radius:0 12px 12px 12px;color:var(--text)}
+.bubble.user{background:var(--cyan);color:var(--black);align-self:flex-end;border-radius:12px 0 12px 12px;font-weight:500}
+.bot-tag{font-family:var(--font-mono);font-size:10px;color:var(--cyan);letter-spacing:1px;margin-bottom:4px}
+.chat-input-row{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:12px}
+.chat-input{flex:1;background:#06060E;border:1px solid var(--border);color:var(--text);padding:12px 16px;font-family:var(--font-body);font-size:14px;outline:none;transition:border-color .2s}
+.chat-input:focus{border-color:var(--cyan)}
+.chat-send{background:var(--cyan);color:var(--black);border:none;padding:12px 20px;cursor:pointer;font-weight:700;font-size:13px;transition:opacity .2s}
+.chat-send:hover{opacity:.85}
+
+/* PRICING */
+#pricing{padding:120px 40px}
+.pricing-inner{max-width:1100px;margin:0 auto}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--border);margin-top:48px;border:1px solid var(--border)}
+.price-card{background:var(--card);padding:48px 40px;position:relative}
+.price-card.featured{background:#0A0A1E;border:1px solid var(--cyan)}
+.featured-tag{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--cyan);color:var(--black);font-family:var(--font-mono);font-size:10px;padding:4px 16px;letter-spacing:2px;font-weight:700;white-space:nowrap}
+.price-name{font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--muted);margin-bottom:16px}
+.price-amount{font-family:var(--font-display);font-size:64px;line-height:1;margin-bottom:4px}
+.price-amount span{font-size:24px;color:var(--muted)}
+.price-period{font-size:13px;color:var(--muted);margin-bottom:32px}
+.price-features{display:flex;flex-direction:column;gap:12px;list-style:none;margin-bottom:40px}
+.price-features li{font-size:14px;color:var(--muted);display:flex;gap:10px;align-items:flex-start;line-height:1.5}
+.price-features li::before{content:'↳';color:var(--cyan);flex-shrink:0}
+.btn-price{width:100%;padding:14px;font-family:var(--font-body);font-size:14px;font-weight:600;letter-spacing:.5px;cursor:pointer;transition:all .2s}
+.btn-price-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-price-outline:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-price-filled{background:var(--cyan);color:var(--black);border:none}
+.btn-price-filled:hover{opacity:.9}
+
+/* CTA */
+#cta{padding:160px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(0,229,255,0.04),transparent)}
+.cta-inner{position:relative;z-index:1;max-width:800px;margin:0 auto}
+.cta-title{font-family:var(--font-display);font-size:clamp(48px,8vw,110px);line-height:.92;margin-bottom:32px}
+.cta-title .word{display:block}
+.cta-sub{font-size:18px;color:var(--muted);margin-bottom:48px;font-weight:300}
+.cta-form{display:flex;gap:0;max-width:500px;margin:0 auto}
+.cta-input{flex:1;background:var(--card);border:1px solid var(--border);border-right:none;color:var(--text);padding:16px 20px;font-family:var(--font-body);font-size:15px;outline:none}
+.cta-input:focus{border-color:var(--cyan)}
+.cta-input::placeholder{color:var(--muted)}
+.cta-submit{background:var(--cyan);color:var(--black);border:none;padding:16px 28px;font-family:var(--font-body);font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.cta-submit:hover{opacity:.85}
+.cta-note{margin-top:16px;font-size:12px;color:var(--muted)}
+
+/* FOOTER */
+footer{padding:48px 40px;border-top:1px solid var(--border)}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px}
+.footer-logo{font-family:var(--font-display);font-size:22px;letter-spacing:2px}
+.footer-logo span{color:var(--cyan)}
+.footer-copy{font-size:13px;color:var(--muted)}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-size:13px;color:var(--muted);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--text)}
+
+/* SCROLL ANIMATIONS */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* TICKER */
+.ticker-wrap{overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;background:var(--surface);position:relative;z-index:1}
+.ticker{display:flex;animation:ticker 25s linear infinite;white-space:nowrap}
+.ticker-item{font-family:var(--font-mono);font-size:12px;color:var(--muted);padding:0 48px;letter-spacing:1px}
+.ticker-item .hl{color:var(--red)}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* MOBILE */
+@media(max-width:768px){
+  nav{padding:16px 20px}
+  .nav-links{display:none}
+  #hero{padding:100px 20px 60px}
+  #pain,#solution,#industries,#results,#agent,#pricing,#cta{padding:80px 20px}
+  .solution-grid{grid-template-columns:1fr}
+  .solution-visual{display:none}
+  .results-grid{grid-template-columns:1fr}
+  footer{padding:40px 20px}
+  .footer-inner{flex-direction:column;text-align:center}
+  .hero-stats{gap:24px}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="logo">ALEPH<span>AI</span></div>
+  <ul class="nav-links">
+    <li><a href="#pain">El problema</a></li>
+    <li><a href="#solution">Solución</a></li>
+    <li><a href="#industries">Sectores</a></li>
+    <li><a href="#pricing">Precios</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">Quiero una demo</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-tag">
+    <span></span>AGENCIA DE AUTOMATIZACIÓN CON IA · MADRID
+  </div>
+  <h1>
+    LOS CLIENTES<br>
+    QUE <span class="strike">IGNORABAS</span><br>
+    SON TU <span class="accent">COMPETENCIA</span>
+  </h1>
+  <p class="hero-sub">
+    Automatizamos tu negocio con IA para que <strong>nunca pierdas un cliente por no contestar a tiempo</strong>. Más citas. Más ingresos. Sin contratar a nadie nuevo.
+  </p>
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="document.getElementById('agent').scrollIntoView({behavior:'smooth'})">
+      Habla con nuestro agente
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <button class="btn-ghost" onclick="document.getElementById('pain').scrollIntoView({behavior:'smooth'})">
+      Ver cuánto pierdes
+    </button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num" data-count="73">0</div>
+      <div class="stat-label">% de negocios pierden clientes por no responder en &lt;5 minutos</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-count="2400" data-prefix="€">0</div>
+      <div class="stat-label">pérdida media mensual por citas perdidas en una clínica</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-count="24" data-suffix="h">0</div>
+      <div class="stat-label">trabaja tu agente IA mientras tú duermes</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-count="48" data-suffix="h">0</div>
+      <div class="stat-label">para tener el sistema funcionando en tu negocio</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">🔴 Cada minuto sin responder = <span class="hl">cliente perdido</span></span>
+    <span class="ticker-item">📞 El 78% de los clientes llaman a <span class="hl">tu competencia</span> si no contestas</span>
+    <span class="ticker-item">💸 Una clínica dental pierde de media <span class="hl">€28.800/año</span> por citas no gestionadas</span>
+    <span class="ticker-item">⏰ Tu IA responde en <span class="hl">3 segundos</span>. Tu competencia no.</span>
+    <span class="ticker-item">🤖 Los negocios que automatizan crecen <span class="hl">3x más rápido</span></span>
+    <span class="ticker-item">🔴 Cada minuto sin responder = <span class="hl">cliente perdido</span></span>
+    <span class="ticker-item">📞 El 78% de los clientes llaman a <span class="hl">tu competencia</span> si no contestas</span>
+    <span class="ticker-item">💸 Una clínica dental pierde de media <span class="hl">€28.800/año</span> por citas no gestionadas</span>
+    <span class="ticker-item">⏰ Tu IA responde en <span class="hl">3 segundos</span>. Tu competencia no.</span>
+    <span class="ticker-item">🤖 Los negocios que automatizan crecen <span class="hl">3x más rápido</span></span>
+  </div>
+</div>
+
+<!-- PAIN -->
+<section id="pain">
+  <div class="pain-inner">
+    <div class="section-label reveal">// EL DIAGNÓSTICO</div>
+    <h2 class="section-title reveal">TU NEGOCIO<br><span style="color:var(--red)">SANGRA</span><br>DINERO</h2>
+    <div class="pain-grid">
+      <div class="pain-card reveal">
+        <span class="pain-icon">🦷</span>
+        <div class="pain-loss">€2.400</div>
+        <div class="pain-who">Clínica Dental · al mes</div>
+        <p class="pain-desc">3 pacientes no se confirman cada semana. Ese hueco vacío en la agenda es dinero que <strong>nadie recupera</strong>. Tu recepcionista no puede llamar a la lista de espera en tiempo real.</p>
+      </div>
+      <div class="pain-card reveal">
+        <span class="pain-icon">💆</span>
+        <div class="pain-loss">€1.800</div>
+        <div class="pain-who">Centro de Estética · al mes</div>
+        <p class="pain-desc">Clientes que escriben por Instagram a las 10pm y no reciben respuesta hasta el día siguiente. Para entonces <strong>ya reservaron en otro sitio</strong>.</p>
+      </div>
+      <div class="pain-card reveal">
+        <span class="pain-icon">🧠</span>
+        <div class="pain-loss">€3.200</div>
+        <div class="pain-who">Psicólogo / Terapeuta · al mes</div>
+        <p class="pain-desc">Primeras consultas que nunca se materializan porque el proceso de reserva es complicado o lento. El paciente en crisis <strong>no espera</strong>.</p>
+      </div>
+      <div class="pain-card reveal">
+        <span class="pain-icon">📊</span>
+        <div class="pain-loss">€4.100</div>
+        <div class="pain-who">Asesoría / Gestoría · al mes</div>
+        <p class="pain-desc">Leads que preguntan precios por WhatsApp y nunca reciben seguimiento. Tu competidor tiene un bot que responde en 10 segundos. Tú <strong>lo haces manualmente el lunes</strong>.</p>
+      </div>
+      <div class="pain-card reveal">
+        <span class="pain-icon">🔧</span>
+        <div class="pain-loss">€1.200</div>
+        <div class="pain-who">Taller / Garaje · al mes</div>
+        <p class="pain-desc">Presupuestos que se piden por teléfono, se apuntan en papel y se olvidan. Clientes que esperan confirmación y <strong>se van sin avisar</strong>.</p>
+      </div>
+      <div class="pain-card reveal" style="background:rgba(255,45,85,0.04);border-color:rgba(255,45,85,0.2)">
+        <span class="pain-icon">⚠️</span>
+        <div class="pain-loss" style="font-size:36px;color:var(--text)">La solución<br>existe</div>
+        <div class="pain-who" style="color:var(--cyan)">AlephAI · desde 48h</div>
+        <p class="pain-desc">Un agente IA que trabaja 24/7, responde en segundos, gestiona citas, hace seguimiento y recupera clientes de la lista de espera. <strong>Sin personal extra.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section id="solution">
+  <div class="solution-inner">
+    <div class="section-label reveal">// CÓMO FUNCIONA</div>
+    <h2 class="section-title reveal">TU NEGOCIO<br><span style="color:var(--cyan)">INTELIGENTE</span></h2>
+    <div class="solution-grid">
+      <div class="solution-content">
+        <div class="step reveal">
+          <div class="step-num">01</div>
+          <div class="step-text">
+            <h3>Conectamos en 48 horas</h3>
+            <p>Integramos el agente IA en tu WhatsApp Business, web y redes. Sin cambiar lo que ya usas. Sin perder datos.</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">02</div>
+          <div class="step-text">
+            <h3>El agente aprende tu negocio</h3>
+            <p>Servicios, precios, horarios, forma de hablar. En 24h conoce tu negocio mejor que un nuevo empleado después de un mes.</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">03</div>
+          <div class="step-text">
+            <h3>Responde, reserva y cobra</h3>
+            <p>Gestiona solicitudes 24/7, confirma citas, manda recordatorios, activa la lista de espera cuando hay cancelaciones y recoge pagos.</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">04</div>
+          <div class="step-text">
+            <h3>Tú ves los resultados</h3>
+            <p>Dashboard en tiempo real con conversaciones, citas generadas, ingresos recuperados. Sabes exactamente qué hace tu agente.</p>
+          </div>
+        </div>
+      </div>
+      <div class="solution-visual reveal">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="agent-ui">
+          <div class="agent-header">
+            <div class="agent-dot"></div>
+            <span>Agente AlephAI · En línea</span>
+          </div>
+          <div class="msg bot">Hola, soy el asistente de Clínica Dental Martínez 👋 ¿En qué te puedo ayudar?</div>
+          <div class="msg user">Quiero una revisión para mañana</div>
+          <div class="msg bot">Claro, tengo disponible mañana a las 10:30 y a las 17:00. ¿Cuál prefieres?</div>
+          <div class="msg user">Las 10:30 perfecto</div>
+          <div class="msg bot">✅ Reservado. Te mando confirmación y te aviso 24h antes. ¿Tu nombre?</div>
+          <div class="msg user">María López</div>
+          <div class="msg bot">Perfecto María 🦷 Hasta mañana a las 10:30. Si necesitas cambiarla, escríbeme aquí.</div>
+          <div class="typing"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INDUSTRIES -->
+<section id="industries">
+  <div class="industries-inner">
+    <div class="section-label reveal">// SECTORES QUE TRANSFORMAMOS</div>
+    <h2 class="section-title reveal">HECHO PARA<br><span style="color:var(--lime)">TU SECTOR</span></h2>
+    <div class="industry-grid">
+      <div class="industry-card reveal">
+        <span class="industry-emoji">🦷</span>
+        <div class="industry-name">Clínicas Dentales</div>
+        <p class="industry-pain">Recordatorios automáticos, lista de espera, confirmaciones y cobros prepagados.</p>
+        <span class="industry-savings">↑ €2.400/mes recuperados</span>
+      </div>
+      <div class="industry-card reveal">
+        <span class="industry-emoji">💆‍♀️</span>
+        <div class="industry-name">Centros de Estética</div>
+        <p class="industry-pain">Reservas por Instagram, WhatsApp y web. Recordatorios. Venta de bonos automática.</p>
+        <span class="industry-savings">↑ €1.800/mes recuperados</span>
+      </div>
+      <div class="industry-card reveal">
+        <span class="industry-emoji">🧠</span>
+        <div class="industry-name">Psicólogos</div>
+        <p class="industry-pain">Proceso de primera consulta automatizado. Confidencialidad garantizada. Seguimiento post-sesión.</p>
+        <span class="industry-savings">↑ €3.200/mes recuperados</span>
+      </div>
+      <div class="industry-card reveal">
+        <span class="industry-emoji">📊</span>
+        <div class="industry-name">Asesorías</div>
+        <p class="industry-pain">Cualificación de leads 24/7, envío de documentación, recordatorios de vencimientos fiscales.</p>
+        <span class="industry-savings">↑ €4.100/mes recuperados</span>
+      </div>
+      <div class="industry-card reveal">
+        <span class="industry-emoji">🐾</span>
+        <div class="industry-name">Clínicas Veterinarias</div>
+        <p class="industry-pain">Agendado de vacunas, recordatorios periódicos, historial del paciente por WhatsApp.</p>
+        <span class="industry-savings">↑ €1.900/mes recuperados</span>
+      </div>
+      <div class="industry-card reveal">
+        <span class="industry-emoji">🔧</span>
+        <div class="industry-name">Talleres / Garajes</div>
+        <p class="industry-pain">Gestión de presupuestos, notificaciones de reparación lista, citas de ITV automatizadas.</p>
+        <span class="industry-savings">↑ €1.200/mes recuperados</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="results-inner">
+    <div class="section-label reveal">// RESULTADOS REALES</div>
+    <h2 class="section-title reveal">NÚMEROS<br><span style="color:var(--lime)">QUE HABLAN</span></h2>
+    <div class="results-grid">
+      <div class="result-card reveal">
+        <div class="result-metric">+340%</div>
+        <div class="result-label">aumento de leads contactados en las primeras 24h de implementar el agente</div>
+        <div class="result-who">Centro Estética · Madrid</div>
+      </div>
+      <div class="result-card reveal">
+        <div class="result-metric">€2.1K</div>
+        <div class="result-label">recuperados en el primer mes activando la lista de espera automática en huecos de agenda</div>
+        <div class="result-who">Clínica Dental · Zaragoza</div>
+      </div>
+      <div class="result-card reveal">
+        <div class="result-metric">-82%</div>
+        <div class="result-label">reducción en no-shows tras implementar recordatorios automáticos en WhatsApp a 48h y 2h</div>
+        <div class="result-who">Psicóloga · Valencia</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENT DEMO -->
+<section id="agent">
+  <div class="agent-inner">
+    <div class="section-label reveal" style="text-align:center">// PRUÉBALO AHORA</div>
+    <h2 class="section-title reveal" style="text-align:center">HABLA CON<br><span style="color:var(--cyan)">NUESTRO AGENTE</span></h2>
+    <p class="reveal" style="color:var(--muted);font-size:16px;margin-top:16px;line-height:1.7">Este es el mismo agente que instalaremos en tu negocio. Cuéntale qué problema tienes y cómo puede ayudarte.</p>
+    <div class="agent-demo reveal">
+      <div class="agent-demo-header">
+        <div class="agent-dot"></div>
+        <div class="agent-demo-title">AGENTE ALEPHAI · MODO DEMOSTRACIÓN</div>
+      </div>
+      <div class="chat-body" id="chat-messages">
+        <div style="margin-bottom:4px"><div class="bot-tag">AlephAI</div></div>
+        <div class="bubble bot">¡Hola! Soy el agente de AlephAI 👋 Cuéntame sobre tu negocio y te digo exactamente cómo podemos ayudarte a recuperar clientes y automatizar tu gestión. ¿A qué te dedicas?</div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chat-input" type="text" placeholder="Escribe tu mensaje..." onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="chat-send" onclick="sendChat()">ENVIAR →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="pricing-inner">
+    <div class="section-label reveal">// INVERSIÓN</div>
+    <h2 class="section-title reveal">PRECIOS QUE<br><span style="color:var(--cyan)">SE PAGAN SOLOS</span></h2>
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <div class="price-name">STARTER</div>
+        <div class="price-amount"><span>€</span>199</div>
+        <div class="price-period">al mes · sin permanencia</div>
+        <ul class="price-features">
+          <li>Agente WhatsApp 24/7</li>
+          <li>Gestión de citas y recordatorios</li>
+          <li>Hasta 300 conversaciones/mes</li>
+          <li>Dashboard básico en tiempo real</li>
+          <li>Soporte por email 48h</li>
+        </ul>
+        <button class="btn-price btn-price-outline">Empezar ahora</button>
+      </div>
+      <div class="price-card featured reveal">
+        <div class="featured-tag">MÁS POPULAR</div>
+        <div class="price-name">PROFESIONAL</div>
+        <div class="price-amount"><span>€</span>399</div>
+        <div class="price-period">al mes · sin permanencia</div>
+        <ul class="price-features">
+          <li>Todo lo de Starter</li>
+          <li>Agente Cobrador (recordatorios de pago)</li>
+          <li>Lista de espera automática</li>
+          <li>Conversaciones ilimitadas</li>
+          <li>Integración con tu software actual</li>
+          <li>Dashboard avanzado + analytics</li>
+          <li>Soporte prioritario &lt;4h</li>
+        </ul>
+        <button class="btn-price btn-price-filled">Quiero una demo gratis</button>
+      </div>
+      <div class="price-card reveal">
+        <div class="price-name">ENTERPRISE</div>
+        <div class="price-amount" style="font-size:40px;padding-top:12px">A medida</div>
+        <div class="price-period">para grupos y franquicias</div>
+        <ul class="price-features">
+          <li>Todo lo de Profesional</li>
+          <li>Múltiples sedes / centros</li>
+          <li>Agentes especializados por rol</li>
+          <li>White-label con tu marca</li>
+          <li>SLA 99.9% · Soporte 24/7</li>
+          <li>Onboarding dedicado en persona</li>
+        </ul>
+        <button class="btn-price btn-price-outline">Contactar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-bg"></div>
+  <div class="cta-inner">
+    <div class="section-label" style="text-align:center;margin-bottom:24px">// EMPIEZA HOY</div>
+    <h2 class="cta-title">
+      <span class="word">CADA DÍA</span>
+      <span class="word" style="color:var(--red)">SIN AGENTE</span>
+      <span class="word">ES DINERO</span>
+      <span class="word" style="color:var(--red)">QUE SE VA</span>
+    </h2>
+    <p class="cta-sub">Demo gratuita en 24h. Tu agente funcionando en 48h. Sin contratos. Sin excusas.</p>
+    <div class="cta-form">
+      <input class="cta-input" type="text" placeholder="Tu WhatsApp o email" id="cta-email"/>
+      <button class="cta-submit" onclick="submitCTA()">QUIERO MI DEMO →</button>
+    </div>
+    <p class="cta-note">✓ Sin compromiso · ✓ Demo personalizada para tu sector · ✓ Respuesta en menos de 2h</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">ALEPH<span>AI</span>.io</div>
+    <div class="footer-copy">© 2026 AlephAI · Madrid, España · alephai.io</div>
+    <div class="footer-links">
+      <a href="#">Política de privacidad</a>
+      <a href="#">Términos</a>
+      <a href="mailto:hola@alephai.io">hola@alephai.io</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Custom cursor
+const cursor=document.getElementById('cursor');
+const ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px'});
+setInterval(()=>{rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px'},16);
+document.querySelectorAll('button,a,.industry-card,.pain-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cursor.style.width='20px';cursor.style.height='20px'});
+  el.addEventListener('mouseleave',()=>{cursor.style.width='12px';cursor.style.height='12px'});
+});
+
+// Nav scroll
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>60);
+});
+
+// Canvas grid
+const canvas=document.getElementById('bg-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();
+window.addEventListener('resize',resize);
+for(let i=0;i<60;i++){particles.push({x:Math.random()*2000,y:Math.random()*2000,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*1.5+.5})}
+function drawGrid(){
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(28,28,48,0.6)';
+  ctx.lineWidth=.5;
+  const size=60;
+  for(let x=0;x<W;x+=size){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=0;y<H;y+=size){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+    if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,229,255,0.25)';ctx.fill();
+  });
+  requestAnimationFrame(drawGrid);
+}
+drawGrid();
+
+// Reveal on scroll
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// Counter animation
+function animateCounters(){
+  document.querySelectorAll('[data-count]').forEach(el=>{
+    const target=parseInt(el.dataset.count);
+    const prefix=el.dataset.prefix||'';
+    const suffix=el.dataset.suffix||'';
+    let current=0;
+    const step=target/60;
+    const interval=setInterval(()=>{
+      current=Math.min(current+step,target);
+      el.textContent=prefix+(target>=1000?Math.round(current).toLocaleString('es-ES'):Math.round(current))+suffix;
+      if(current>=target)clearInterval(interval);
+    },25);
+  });
+}
+const heroObserver=new IntersectionObserver(e=>{if(e[0].isIntersecting)animateCounters()},{threshold:.3});
+heroObserver.observe(document.querySelector('.hero-stats'));
+
+// Chat agent (demo)
+const API_URL='https://api.anthropic.com/v1/messages';
+const SYSTEM=`Eres el agente de ventas y captación de AlephAI, una agencia de automatización con IA para pequeñas y medianas empresas en España. Ayudas a negocios como clínicas dentales, centros de estética, psicólogos, asesorías, veterinarios y garajes a automatizar su gestión de clientes, citas y comunicaciones con WhatsApp Business y IA.
+
+Tu objetivo es: 1) entender el negocio del visitante, 2) identificar su mayor dolor (clientes perdidos, citas no confirmadas, falta de seguimiento), 3) explicar brevemente cómo AlephAI lo resuelve, 4) conseguir que pidan una demo.
+
+Sé directo, empático y concreto. Usa ejemplos reales de dinero perdido. Responde en español. Máximo 3 frases por respuesta. No seas genérico.`;
+
+let chatHistory=[];
+async function sendChat(){
+  const input=document.getElementById('chat-input');
+  const msg=input.value.trim();
+  if(!msg)return;
+  input.value='';
+  addBubble(msg,'user');
+  chatHistory.push({role:'user',content:msg});
+  const typing=addTyping();
+  try{
+    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:SYSTEM,messages:chatHistory})});
+    const data=await res.json();
+    const reply=data.content?.[0]?.text||'Lo siento, prueba de nuevo.';
+    typing.remove();
+    chatHistory.push({role:'assistant',content:reply});
+    addBubble(reply,'bot');
+  }catch(e){typing.remove();addBubble('Error de conexión. Escríbenos directamente a hola@alephai.io','bot')}
+}
+function addBubble(text,type){
+  const msgs=document.getElementById('chat-messages');
+  const wrap=document.createElement('div');
+  if(type==='bot'){const tag=document.createElement('div');tag.className='bot-tag';tag.textContent='AlephAI';wrap.appendChild(tag)}
+  const b=document.createElement('div');
+  b.className=`bubble ${type}`;b.textContent=text;
+  wrap.appendChild(b);msgs.appendChild(wrap);
+  msgs.scrollTop=msgs.scrollHeight;
+  return b;
+}
+function addTyping(){
+  const msgs=document.getElementById('chat-messages');
+  const wrap=document.createElement('div');
+  const tag=document.createElement('div');tag.className='bot-tag';tag.textContent='AlephAI';wrap.appendChild(tag);
+  const t=document.createElement('div');t.className='bubble bot';
+  t.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
+  wrap.appendChild(t);msgs.appendChild(wrap);msgs.scrollTop=msgs.scrollHeight;
+  return wrap;
+}
+
+// CTA form
+function submitCTA(){
+  const val=document.getElementById('cta-email').value.trim();
+  if(!val)return;
+  alert('✅ ¡Recibido! Te contactamos en menos de 2 horas. Mientras tanto, habla con nuestro agente en el chat.');
+  document.getElementById('cta-email').value='';
+}
+</script>
+</body>
+</html>
