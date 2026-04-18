@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+:root {
+  --black: #04040A;
+  --surface: #08080F;
+  --card: #0D0D1A;
+  --border: #1C1C30;
+  --cyan: #00E5FF;
+  --lime: #AAFF00;
+  --red: #FF2D55;
+  --text: #F0F0FF;
+  --muted: #5A5A7A;
+  
+  --background: var(--black);
+  --foreground: var(--text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-black: var(--black);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-cyan: var(--cyan);
+  --color-lime: var(--lime);
+  --color-red: var(--red);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-bebas-neue);
+  --font-mono: var(--font-dm-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Custom cursor */
+#cursor {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  background: var(--cyan);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, opacity 0.2s;
+  mix-blend-mode: difference;
+}
+
+#cursor-ring {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--cyan);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  opacity: 0.4;
+  transition: transform 0.08s ease;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.3; }
+  40% { opacity: 1; }
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-pulse-dot {
+  animation: pulse 2s infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+.animate-blink {
+  animation: blink 1.4s infinite;
+}
+
+.animate-blink-2 {
+  animation: blink 1.4s infinite 0.2s;
+}
+
+.animate-blink-3 {
+  animation: blink 1.4s infinite 0.4s;
+}
+
+.animate-ticker {
+  animation: ticker 25s linear infinite;
+}
+
+/* Reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hide cursor on mobile */
+@media (max-width: 768px) {
+  #cursor, #cursor-ring {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) {
+  #cursor, #cursor-ring {
+    display: none;
+  }
+}
